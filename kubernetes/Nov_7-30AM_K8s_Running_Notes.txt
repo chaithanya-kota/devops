@@ -1,0 +1,228 @@
+Containerization --> Docker, Rocket(Rkt)
+Container Orchestration Tools --> Docker Swarm,Kubernetes,OpenShift
+
+
+Installation
+============
+
+Self Managed K8's Cluster
+ minikube --> Single Node K8's Cluster.
+ kubeadm --> We can setup multi node k8's cluster using kubeadm.
+
+
+Cloud Managed(Managed Services)
+EKS --> Elastic Kubernetes Service(AWS)
+AKS --> Azure Kubernetes Service(Azure)
+GKE --> Google Kubernetes Engine(GCP)
+
+KOPS --> Kubernetes Operations is a sotware using which we can create production ready
+highily available kubenetes services in Cloud like AWS.KOPS will leverage Cloud Sevices like
+AWS AutoScaling & Lanuch Configurations to setup K8's Master & Workers. It will Create 2 ASG & Lanuch Configs
+one for master and one for worekrs. Thesse Auto Scaling Groups will manage EC2 Instances.
+
+
+Name Spaces
+
+kubectl get namespaces
+
+kubectl create namespace <nameSpaceName>
+
+ex:
+
+kubectl create flipkartapp
+
+Kubernetes Objects:
+
+POD
+
+Replication Controller
+
+Replica Set
+
+DaemonSet
+
+Deployment
+
+Service
+
+Volume
+
+
+# POD Manifest
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: <PodName>
+  labels:
+    <Key>: <value>
+  namespace: <nameSpaceName>
+spec:
+  containers:
+  - name: <NameOfTheCotnainer>
+    image: <imagaName>
+	ports:
+	- containerPort: <portOfContainer>
+	
+Example:
+---	
+apiVersion: v1
+kind: Pod
+metadata:
+  name: javawebapppod
+  labels:
+    app:  javawebapp
+spec:
+  containers:
+  - name: javawebappcontainer
+    image: dockerhandson/java-web-app
+    ports:
+    - containerPort: 8080
+
+
+kubectl apply -f <fileName.yml>
+
+kubectl get all 
+kubectl get pods 
+kubectl get pods --show-labels
+kubectl get pods - o wide
+kubectl get pods - o wide --show-labels
+
+kubectl  describe pod <podName>
+kubectl  describe pod <podName> -n <namespace>
+
+
+Note: If we don't mention -n <namespace> it will refer default namespace.
+If required we can change name space context.
+
+kubctl config set-context --curent --namespace=<namespace>
+ex:
+kubectl config set-context --curent --namespace=flipkart
+
+After setting context  by default it will point to that namespace.
+
+
+Change it to default namespace again if required
+ex:
+kubectl config set-context --curent --namespace=default
+
+# Multi Container POD
+apiVersion: v1
+kind: Pod
+metadata:
+  name:  <PODName>
+  namespace: <nameSpaceName>
+  labels:
+    <labelKey>: <labelValue> 
+spec:
+  containers:
+  - name: <nameOftheCotnainer>
+    image: <imageName>
+	ports:
+	- containerPort: <portNumberOfContainer>
+  - name: <nameOftheCotnainer>
+    image: <imageName>
+    ports:
+    - containerPort: <portNumberOfContainer>
+
+
+K8's Service   ---> In Kubernetes Service makes our pods accessable/discoverable with in the cluster or exposing them to internat.
+               		service will identify pods using it's labels And Selector. Whenever we create a service a ClusterIP (virtual IP) Address will be allocated for that serivce and DNS 					entry will be created for that IP. So internally we can access using service name(DNS).
+						
+	
+Service
+========
+apiVersion: v1
+kind: Service
+metadata:
+  name: <serviceName>
+  namespace: <nameSpace>
+spec:
+  type: <ClusterIP/NodePort>
+  selector:
+     <key>: <value>
+  ports:
+  - port: <servciePort>	# default It to 80
+    targetPort: <containerPort> 
+	
+
+With in Cluster ClusterIP
+==========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: javawebappservice
+spec:
+  type: ClusterIP
+  selector:
+     app: javawebapp
+  ports:
+  - port: 80
+    targetPort: 8080
+
+Out side of Cluster Node Port
+====================
+apiVersion: v1
+kind: Service
+metadata:
+  name: javawebappservice
+spec:
+  type: NodePort
+  selector:
+     app: javawebapp
+  ports:
+  - port: 80
+    targetPort: 8080
+	nodePort: 30033 # This Optional if u don't mention nodePort.Kuberetes will assign.
+	
+
+kubectl apply -f <file.yml>
+
+kubectl get svc 
+kubectl get all
+
+kubectl  describe service <serviceName>
+kubectl  describe service <serviceName> -n <namespace>
+kubectl  describe service <serviceName> -o wide
+
+
+What is node port range?
+30000-32767
+
+
+kubectl get all --all-namespaces
+kubectl get all -n <namespace>
+kubectl get pods -n <namespace>
+kubectl get pods -n <namespace> - o wide
+
+kubectl get svc -n <namespace>
+
+ACCESS OUTSIDE USING NODEIP:NODEPORT.
+
+
+
+
+
+POD --> Pod is the smallest building block which we can deploy in k8s.Pod represents running process.Pod contains one or more containers.These container will share same network,storage and any other specifications.Pod will have unique IP Address in k8s cluster.
+
+Pods
+ SingleContainerPods --> Pod will have only one container.
+ 
+ MultiContainerPods(SideCar) --> POD will two or more contianers.
+ 
+We should not create pods directly for deploying applications.If pod is down it wont be rescheduled.
+
+We have to create pods with help of controllers.Which manages POD life cycle.
+
+
+					
+
+
+Controllers
+===========
+
+ReplicationController
+ReplicaSet
+DaemonSet
+Deploymnet
+StatefullSet
